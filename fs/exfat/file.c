@@ -532,10 +532,12 @@ int exfat_file_fsync(struct file *filp, loff_t start, loff_t end, int datasync)
 	return blkdev_issue_flush(inode->i_sb->s_bdev);
 }
 
-static int exfat_extend_valid_size(struct file *file, loff_t new_valid_size)
+static int exfat_extend_valid_size(const struct kiocb *iocb,
+				   loff_t new_valid_size)
 {
 	int err;
 	loff_t pos;
+	struct file *file = iocb->ki_filp;
 	struct inode *inode = file_inode(file);
 	struct exfat_inode_info *ei = EXFAT_I(inode);
 	struct address_space *mapping = inode->i_mapping;
@@ -551,14 +553,14 @@ static int exfat_extend_valid_size(struct file *file, loff_t new_valid_size)
 		if (pos + len > new_valid_size)
 			len = new_valid_size - pos;
 
-		err = ops->write_begin(file, mapping, pos, len, &folio, NULL);
+		err = ops->write_begin(iocb, mapping, pos, len, &folio, NULL);
 		if (err)
 			goto out;
 
 		off = offset_in_folio(folio, pos);
 		folio_zero_new_buffers(folio, off, off + len);
 
-		err = ops->write_end(file, mapping, pos, len, len, folio, NULL);
+		err = ops->write_end(iocb, mapping, pos, len, len, folio, NULL);
 		if (err < 0)
 			goto out;
 		pos += len;
@@ -604,7 +606,7 @@ static ssize_t exfat_file_write_iter(struct kiocb *iocb, struct iov_iter *iter)
 	}
 
 	if (pos > valid_size) {
-		ret = exfat_extend_valid_size(file, pos);
+		ret = exfat_extend_valid_size(iocb, pos);
 		if (ret < 0 && ret != -ENOSPC) {
 			exfat_err(inode->i_sb,
 				"write: fail to zero from %llu to %llu(%zd)",
@@ -655,7 +657,10 @@ static vm_fault_t exfat_page_mkwrite(struct vm_fault *vmf)
 	struct file *file = vma->vm_file;
 	struct inode *inode = file_inode(file);
 	struct exfat_inode_info *ei = EXFAT_I(inode);
+	struct kiocb iocb;
 	loff_t start, end;
+
+	init_sync_kiocb(&iocb, file);
 
 	if (!inode_trylock(inode))
 		return VM_FAULT_RETRY;
@@ -665,7 +670,7 @@ static vm_fault_t exfat_page_mkwrite(struct vm_fault *vmf)
 			start + vma->vm_end - vma->vm_start);
 
 	if (ei->valid_size < end) {
-		err = exfat_extend_valid_size(file, end);
+		err = exfat_extend_valid_size(&iocb, end);
 		if (err < 0) {
 			inode_unlock(inode);
 			return vmf_fs_error(err);
