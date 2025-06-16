@@ -474,7 +474,7 @@ static void ufs_write_failed(struct address_space *mapping, loff_t to)
 	}
 }
 
-static int ufs_write_begin(struct file *file, struct address_space *mapping,
+static int ufs_write_begin(struct kiocb *iocb, struct address_space *mapping,
 			loff_t pos, unsigned len,
 			struct folio **foliop, void **fsdata)
 {
@@ -487,13 +487,13 @@ static int ufs_write_begin(struct file *file, struct address_space *mapping,
 	return ret;
 }
 
-static int ufs_write_end(struct file *file, struct address_space *mapping,
+static int ufs_write_end(struct kiocb *iocb, struct address_space *mapping,
 			loff_t pos, unsigned len, unsigned copied,
 			struct folio *folio, void *fsdata)
 {
 	int ret;
 
-	ret = generic_write_end(file, mapping, pos, len, copied, folio, fsdata);
+	ret = generic_write_end(iocb, mapping, pos, len, copied, folio, fsdata);
 	if (ret < len)
 		ufs_write_failed(mapping, pos + len);
 	return ret;

@@ -113,6 +113,7 @@ static int ntfs_extend_initialized_size(struct file *file,
 	struct inode *inode = &ni->vfs_inode;
 	struct address_space *mapping = inode->i_mapping;
 	struct ntfs_sb_info *sbi = inode->i_sb->s_fs_info;
+	struct kiocb iocb;
 	loff_t pos = valid;
 	int err;
 
@@ -125,6 +126,8 @@ static int ntfs_extend_initialized_size(struct file *file,
 	}
 
 	WARN_ON(is_compressed(ni));
+
+	init_sync_kiocb(&iocb, file);
 
 	for (;;) {
 		u32 zerofrom, len;
@@ -154,13 +157,13 @@ static int ntfs_extend_initialized_size(struct file *file,
 		if (pos + len > new_valid)
 			len = new_valid - pos;
 
-		err = ntfs_write_begin(file, mapping, pos, len, &folio, NULL);
+		err = ntfs_write_begin(&iocb, mapping, pos, len, &folio, NULL);
 		if (err)
 			goto out;
 
 		folio_zero_range(folio, zerofrom, folio_size(folio) - zerofrom);
 
-		err = ntfs_write_end(file, mapping, pos, len, len, folio, NULL);
+		err = ntfs_write_end(&iocb, mapping, pos, len, len, folio, NULL);
 		if (err < 0)
 			goto out;
 		pos += len;

@@ -446,7 +446,7 @@ static void exfat_write_failed(struct address_space *mapping, loff_t to)
 	}
 }
 
-static int exfat_write_begin(struct file *file, struct address_space *mapping,
+static int exfat_write_begin(struct kiocb *iocb, struct address_space *mapping,
 		loff_t pos, unsigned int len,
 		struct folio **foliop, void **fsdata)
 {
@@ -463,7 +463,7 @@ static int exfat_write_begin(struct file *file, struct address_space *mapping,
 	return ret;
 }
 
-static int exfat_write_end(struct file *file, struct address_space *mapping,
+static int exfat_write_end(struct kiocb *iocb, struct address_space *mapping,
 		loff_t pos, unsigned int len, unsigned int copied,
 		struct folio *folio, void *fsdata)
 {
@@ -471,7 +471,7 @@ static int exfat_write_end(struct file *file, struct address_space *mapping,
 	struct exfat_inode_info *ei = EXFAT_I(inode);
 	int err;
 
-	err = generic_write_end(file, mapping, pos, len, copied, folio, fsdata);
+	err = generic_write_end(iocb, mapping, pos, len, copied, folio, fsdata);
 	if (err < len)
 		exfat_write_failed(mapping, pos+len);
 

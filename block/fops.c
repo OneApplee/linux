@@ -496,18 +496,18 @@ static void blkdev_readahead(struct readahead_control *rac)
 	mpage_readahead(rac, blkdev_get_block);
 }
 
-static int blkdev_write_begin(struct file *file, struct address_space *mapping,
+static int blkdev_write_begin(struct kiocb *iocb, struct address_space *mapping,
 		loff_t pos, unsigned len, struct folio **foliop, void **fsdata)
 {
 	return block_write_begin(mapping, pos, len, foliop, blkdev_get_block);
 }
 
-static int blkdev_write_end(struct file *file, struct address_space *mapping,
+static int blkdev_write_end(struct kiocb *iocb, struct address_space *mapping,
 		loff_t pos, unsigned len, unsigned copied, struct folio *folio,
 		void *fsdata)
 {
 	int ret;
-	ret = block_write_end(file, mapping, pos, len, copied, folio, fsdata);
+	ret = block_write_end(iocb->ki_filp, mapping, pos, len, copied, folio, fsdata);
 
 	folio_unlock(folio);
 	folio_put(folio);

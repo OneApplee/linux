@@ -915,7 +915,7 @@ static void ext2_readahead(struct readahead_control *rac)
 }
 
 static int
-ext2_write_begin(struct file *file, struct address_space *mapping,
+ext2_write_begin(struct kiocb *iocb, struct address_space *mapping,
 		loff_t pos, unsigned len, struct folio **foliop, void **fsdata)
 {
 	int ret;
@@ -926,13 +926,13 @@ ext2_write_begin(struct file *file, struct address_space *mapping,
 	return ret;
 }
 
-static int ext2_write_end(struct file *file, struct address_space *mapping,
+static int ext2_write_end(struct kiocb *iocb, struct address_space *mapping,
 			loff_t pos, unsigned len, unsigned copied,
 			struct folio *folio, void *fsdata)
 {
 	int ret;
 
-	ret = generic_write_end(file, mapping, pos, len, copied, folio, fsdata);
+	ret = generic_write_end(iocb, mapping, pos, len, copied, folio, fsdata);
 	if (ret < len)
 		ext2_write_failed(mapping, pos + len);
 	return ret;

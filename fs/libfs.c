@@ -910,7 +910,7 @@ static int simple_read_folio(struct file *file, struct folio *folio)
 	return 0;
 }
 
-int simple_write_begin(struct file *file, struct address_space *mapping,
+int simple_write_begin(struct kiocb *iocb, struct address_space *mapping,
 			loff_t pos, unsigned len,
 			struct folio **foliop, void **fsdata)
 {
@@ -955,7 +955,7 @@ EXPORT_SYMBOL(simple_write_begin);
  *
  * Use *ONLY* with simple_read_folio()
  */
-static int simple_write_end(struct file *file, struct address_space *mapping,
+static int simple_write_end(struct kiocb *iocb, struct address_space *mapping,
 			loff_t pos, unsigned len, unsigned copied,
 			struct folio *folio, void *fsdata)
 {

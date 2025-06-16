@@ -21,10 +21,10 @@
 #include <linux/jffs2.h>
 #include "nodelist.h"
 
-static int jffs2_write_end(struct file *filp, struct address_space *mapping,
+static int jffs2_write_end(struct kiocb *iocb, struct address_space *mapping,
 			loff_t pos, unsigned len, unsigned copied,
 			struct folio *folio, void *fsdata);
-static int jffs2_write_begin(struct file *filp, struct address_space *mapping,
+static int jffs2_write_begin(struct kiocb *iocb, struct address_space *mapping,
 			loff_t pos, unsigned len,
 			struct folio **foliop, void **fsdata);
 static int jffs2_read_folio(struct file *filp, struct folio *folio);
@@ -121,7 +121,7 @@ static int jffs2_read_folio(struct file *file, struct folio *folio)
 	return ret;
 }
 
-static int jffs2_write_begin(struct file *filp, struct address_space *mapping,
+static int jffs2_write_begin(struct kiocb *iocb, struct address_space *mapping,
 			loff_t pos, unsigned len,
 			struct folio **foliop, void **fsdata)
 {
@@ -235,7 +235,7 @@ out_err:
 	return ret;
 }
 
-static int jffs2_write_end(struct file *filp, struct address_space *mapping,
+static int jffs2_write_end(struct kiocb *iocb, struct address_space *mapping,
 			loff_t pos, unsigned len, unsigned copied,
 			struct folio *folio, void *fsdata)
 {
