@@ -1269,6 +1269,9 @@ static int ext4_write_begin(struct kiocb *iocb, struct address_space *mapping,
 	if (unlikely(ret))
 		return ret;
 
+	if (iocb->ki_flags & IOCB_DONTCACHE)
+		fgp |= FGP_DONTCACHE;
+
 	trace_ext4_write_begin(inode, pos, len);
 	/*
 	 * Reserve one block more for addition to orphan list in case
@@ -3065,6 +3068,9 @@ static int ext4_da_write_begin(struct kiocb *iocb, struct address_space *mapping
 		if (ret == 1)
 			return 0;
 	}
+
+	if (iocb->ki_flags & IOCB_DONTCACHE)
+		fgp |= FGP_DONTCACHE;
 
 retry:
 	fgp |= fgf_set_order(len);
