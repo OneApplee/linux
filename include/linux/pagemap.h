@@ -749,6 +749,9 @@ struct folio *__filemap_get_folio(struct address_space *mapping, pgoff_t index,
 		fgf_t fgp_flags, gfp_t gfp);
 struct page *pagecache_get_page(struct address_space *mapping, pgoff_t index,
 		fgf_t fgp_flags, gfp_t gfp);
+struct folio *write_begin_get_folio(const struct kiocb *iocb,
+				    struct address_space *mapping,
+				    pgoff_t index, size_t len);
 
 /**
  * filemap_get_folio - Find and get a folio.

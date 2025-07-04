@@ -2026,6 +2026,36 @@ no_page:
 }
 EXPORT_SYMBOL(__filemap_get_folio);
 
+
+/**
+ * write_begin_get_folio - Get folio for write_begin with flags
+ * @iocb: kiocb passed from write_begin (may be NULL)
+ * @mapping: the address space to search in
+ * @index: page cache index
+ * @len: length of data being written
+ *
+ * This is a helper for filesystem write_begin() implementations.
+ * It wraps __filemap_get_folio(), setting appropriate flags in
+ * the write begin context.
+ *
+ * Returns a folio or an ERR_PTR.
+ */
+struct folio *write_begin_get_folio(const struct kiocb *iocb,
+				    struct address_space *mapping,
+				    pgoff_t index, size_t len)
+{
+	fgf_t fgp_flags = FGP_WRITEBEGIN;
+
+	fgp_flags |= fgf_set_order(len);
+
+	if (iocb && iocb->ki_flags & IOCB_DONTCACHE)
+		fgp_flags |= FGP_DONTCACHE;
+
+	return __filemap_get_folio(mapping, index, fgp_flags,
+				   mapping_gfp_mask(mapping));
+}
+EXPORT_SYMBOL(write_begin_get_folio);
+
 static inline struct folio *find_get_entry(struct xa_state *xas, pgoff_t max,
 		xa_mark_t mark)
 {
